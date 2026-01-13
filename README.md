@@ -1,133 +1,304 @@
 # OpenPulse
 
-![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
-![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red)
-![License](https://img.shields.io/badge/license-MIT-blue)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)[![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red)](https://www.python.org/)[![MySQL](https://img.shields.io/badge/MySQL-%3E%3D8.0-blue)](https://www.mysql.com/)[![CN](https://img.shields.io/badge/简体中文-README--CN.md-orange)](README-CN.md)
 
-## 目录
-- [项目背景](#项目背景)
-- [项目简介](#项目简介)
-- [功能特性](#功能特性)
-- [技术架构](#技术架构)
-- [安装部署](#安装部署)
-- [使用指南](#使用指南)
-- [说明文档](#说明文档)
-- [核心算法](#核心算法)
-- [开发计划](#开发计划)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+> **Open Source Community Health Assessment & Visualization Platform** — Insight into Community Pulse, Quantifying Vitality
 
-## 项目背景
-在开源生态日益繁荣的今天，单纯的数据展示已无法满足对社区深度的洞察需求。我们需要更进一步，评估开源社区的“健康程度”。**OpenPulse** 应运而生，旨在通过多维度的可视化的智能分析，不仅展示数据的表面，更挖掘社区的脉搏与生命力。
+## Table of Contents
+- [Background](#background)
+- [Introduction](#introduction)
+- [Features](#features)
+- [Technical Architecture](#technical-architecture)
+- [Installation](#installation)
+- [Usage Guide](#usage-guide)
+- [Health Assessment Algorithm](#health-assessment-algorithm)
+- [Development Plan](#development-plan)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 项目简介
-**OpenPulse** 是一个全方位的开源社区健康评估平台。在这里，你不仅可以回顾一个社区的完整生命周期，还能利用智能体（Agent）预测其未来的状态。系统通过深度挖掘，帮助用户发现社区的健康价值，识别解决问题的核心大牛以及极具潜力的明日之星。
+## Background
+In the rapidly evolving open source ecosystem, understanding the health and vitality of a project has become increasingly important for developers, maintainers, and organizations. OpenPulse was created to address this need by providing a comprehensive platform for assessing and visualizing open source community health. By combining multi-dimensional metrics with intelligent analysis, OpenPulse offers deep insights into project sustainability and growth potential.
 
-## 功能特性
+## Introduction
+OpenPulse is a comprehensive open source community health assessment platform that provides multi-dimensional visualization and intelligent analysis to deeply explore the pulse and vitality of communities. The system integrates with OpenDigger data and leverages AI-powered multi-agent collaboration for real-time analysis.
 
-### 1. 社区全景与健康评估
-*   **多维健康度量**: 基于代码提交 (Push)、评论 (Comment) 和关注 (Watch) 等行为权重，综合计算社区健康度。
-*   **赛博光影可视化**:
-    *   **光影球体**: 代表贡献者，球体大小对应贡献度。
-    *   **动态连线**: 绿色代表友好协作，红色代表疏远或冲突，黄色代表中立关系。关系判定基于 NLP 情感分析。
+**Core Capabilities:**
+- **Community Panorama** — Multi-dimensional health metrics with cyber-style collaboration visualization
+- **Lifecycle Analysis** — Historical retrospection + trend prediction with OpenDigger data integration
+- **Intelligent Collaboration** — MaxKB multi-agent real-time analysis and proactive governance
+- **Smart Search** — Trending rankings, intelligent sorting, six-dimensional contributor profiling
 
-### 2. 生命周期追踪与预测
-*   **历史回溯**: 结合 OpenDigger 数据，以折线图呈现项目过往的发展样貌。
-*   **实时状态**: 支持按年、月、日维度的实时关系网络查看。
+## Features
 
-### 3. MaxKB 多智能体协作
-*   **实时分析**: 智能体实时监控当前社区场景，基于知识库解答用户疑问。
-*   **主动治理**: 若问题未在现有 Issue 中记录，智能体将自动代表用户创建新 Issue，并在有回复时及时提醒。
-*   **决策建议**: 为社区管理者提供基于数据驱动的治理建议。
+1. **Multi-dimensional Health Assessment**
+   - Project Health Score (0-100)
+   - Growth metrics (Star/Fork trends)
+   - Activity monitoring (Commit/PR analysis)
+   - Code churn evaluation
 
-### 4. 智能搜索与探索
-*   **热度榜单**: 每日 12:00 更新 Top 3-5 热门项目。
-*   **智能排序**: 搜索结果优先按字符匹配度排序，辅以社区活跃度加权。
-*   **深度画像**: 点击贡献者球体，通过六维雷达图（代码贡献、审查活跃度、沟通能力、连接数、持久度）展示个人画像。
+2. **Interactive Visualization**
+   - Force-directed graph for collaboration networks
+   - 3D cyber-style relationship spheres
+   - Historical trend charts with predictions
+   - Six-dimensional radar charts for contributors
 
-## 技术架构
+3. **Intelligent Analysis**
+   - MaxKB multi-agent collaboration
+   - NLP-based sentiment analysis for relationships
+   - Epidemiological model for trend prediction
+   - Personalized project recommendations
 
-### 前端技术栈
-*   **Web 框架**: React / Vue 
-*   **可视化引擎**: D3.js / ECharts / Three.js 
-*   **交互组件**: 现代化 UI 组件库
+4. **Search & Discovery**
+   - Daily trending projects leaderboard
+   - Smart ranking by activity and relevance
+   - Contributor profiling and matching
 
-### 后端技术栈
-*   **Web 框架**: Python (Flask/FastAPI) & Node.js (Express)
-*   **数据分析**: Pandas, NumPy
-*   **数据源**: GitHub API, OpenDigger
-*   **数据库**: MySQL
+## Technical Architecture
 
-### AI 与 智能体
-*   **大模型支持**: MaxKB (多智能体协作)
-*   **NLP 算法**: 情感分析模型
-## 安装部署
+### Frontend Stack
+| Technology | Purpose |
+|------------|---------|
+| React | Web Framework |
+| D3.js / Three.js | Visualization Engine (3D Cyber Sphere) |
+| Tailwind CSS | Styling Framework |
+| Vite | Build Tool |
 
-### 环境要求
-*   Node.js 18+
-*   Python 3.8+
-*   MySQL 8.0+
+### Backend Stack
+| Technology | Purpose |
+|------------|---------|
+| Python + FastAPI | Web Service Framework |
+| Pandas / NumPy | Data Analysis |
+| MySQL | Data Storage |
+| OpenDigger API | Open Source Metrics |
 
-### 1. 获取代码
+### AI & Agents
+| Technology | Purpose |
+|------------|---------|
+| MaxKB | Multi-agent Collaboration |
+| NLP Models | Sentiment Analysis |
+| Epidemiological Models | Trend Prediction |
+
+## Installation
+
+### Requirements
+- Python 3.8+
+- Node.js 18+
+- MySQL 8.0+
+- Git
+
+### 1. Clone Repository
 ```bash
-git clone https://github.com/Robert4063/OpenPulse/OpenPulse.git
+git clone https://github.com/YourUsername/OpenPulse.git
 cd OpenPulse
 ```
 
-### 2. 后端配置 (Python)
+### 2. Backend Setup
 ```bash
-# 进入 Python 后端目录
-cd backend # 假设目录
+# Enter backend directory
+cd backend
+
+# Install Python dependencies
 pip install -r requirements.txt
-# 配置环境变量 .env
-# GITHUB_TOKEN=your_token
-python crawl_issues_v2.py # 启动爬虫或服务
+
+# Configure environment variables
+# Create .env file with the following:
 ```
 
-### 3. 数据服务配置 (Node.js)
+| Variable | Description | Required |
+|----------|-------------|:--------:|
+| `GITHUB_TOKEN` | GitHub API access token | Yes |
+| `MYSQL_HOST` | MySQL database address | Yes |
+| `MYSQL_USER` | Database username | Yes |
+| `MYSQL_PASSWORD` | Database password | Yes |
+| `MYSQL_DATABASE` | Database name (default: `openrank`) | No |
+| `OPENDIGGER_API` | OpenDigger data API address | No |
+
+See `.env.example` for complete configuration reference.
+
 ```bash
-cd logic.js
-npm install
-# 配置数据库连接
-node init_db.js # 初始化数据库
-npm start
+# Start backend service
+python main.py
 ```
 
-## 使用指南
+### 3. Frontend Setup
+```bash
+# Return to project root and enter frontend directory
+cd ../frontend
 
-### 首页与搜索
-1.  **浏览热榜**: 查看每日中午更新的热门项目。
-2.  **搜索项目**: 输入项目名称，系统将按匹配度和活跃度展示列表。
+# Install dependencies
+npm install
 
-### 项目大屏
-1.  **总览图**: 观察折线图（紧密度）、直方图（活跃度）和山图（持续增长）。
-2.  **预测分析**: 查看虚线部分的未来趋势预测。
+# Start development server
+npm run dev
+```
 
-### 关系网络交互
-1.  **人员关系**: 下滑进入第二部分，查看球状图。
-2.  **贡献详情**: 点击球体，查看六维雷达图和贡献热力图。
-3.  **智能问答**: 点击右下角智能体，获取项目分析或自动提 Issue。
+### 4. Access System
+Visit `http://127.0.0.1:5173` in your browser to access the platform.
 
-## 说明文档
+## Usage Guide
 
-### 1. 算法说明
-*   **紧密度连接评价**: 依据当天及历史记录进行动态加权评估。
-*   **情感计算**: 使用 NLP 分析 Issue 和 Comment 的情感倾向，决定连线颜色。
+### Home & Search
+- **Browse Trending** — View daily updated popular projects
+- **Search Projects** — Input project name, results sorted by match and activity
 
-### 2. 可视化元素
-*   **背景色**: 映射社区整体健康程度。
-*   **连线规则**: 绿色（亲密）、黄色（一般）、红色（疏远/冲突）。
+### Project Dashboard
+- **Overview Chart** — View closeness line charts and activity histograms
+- **Prediction Analysis** — Check future trend predictions (dashed lines)
 
-## 核心算法
-*   **NLP 情感计算**: 用于分析开发者交互的情感色彩。
+### Relationship Network
+- **Personnel Relations** — View collaboration networks in 3D sphere
+- **Contribution Details** — Click spheres to view six-dimensional radar charts
+- **AI Q&A** — Use intelligent agents for project analysis
 
-## 开发计划
-- [ ] 完善多智能体协作流程
-- [ ] 优化 3D 渲染性能
-- [ ] 接入更多开源数据源
+## Health Assessment Algorithm
 
-## 贡献指南
-欢迎提交 Issue 和 Pull Request 参与项目改进。
+### PHAM - Project Health Assessment Model
+Core algorithm that quantifies open source project health with a score from **0 to 100**.
 
-## 许可证
-本项目采用 [MIT License](LICENSE) 许可证。
+### Overall Formula
+```
+M = 0.2 × Growth + 0.4 × Activity + 0.2 × Contribution + 0.2 × Code
+```
+
+### Four-Dimensional Assessment System
+
+| Dimension | Weight | Core Metrics | Description |
+|-----------|:------:|--------------|-------------|
+| **Growth** | 20% | Star/Fork growth rate | Community attention |
+| **Activity** | 40% | Commit trends + OpenDigger | Development activity (core) |
+| **Contribution** | 20% | PR trends | Community contribution |
+| **Code Churn** | 20% | Code changes (logarithmic) | Development throughput |
+
+### Detailed Calculation Logic
+
+#### ⭐ Growth (Attention Growth) — 20%
+```
+Star Growth Rate:  x = (Current Month Star / (Avg 3-Month Star + 1)) × 100
+Fork Growth Rate:  y = (Current Month Fork / (Avg 3-Month Fork + 1)) × 100
+
+Score_Growth = 0.5 × min(x, 200)/2 + 0.5 × min(y, 200)/2
+
+⚠️ Growth rate capped at 200% (score 100) to prevent small projects from score explosion
+```
+
+#### 🔥 Activity — 40%
+```
+Commit Trend:
+Ratio_z = (Last Week Avg Commit + 1) / (Month Avg Commit + 1)
+Score_z = clamp(0, 100, 50 + (Ratio_z − 1) × 50)
+
+OpenDigger Activity:
+Score_m = min(100, OpenDigger_Activity × 10)
+
+Final Score:
+Score_Activity = 0.3 × Score_z + 0.7 × Score_m
+```
+
+| Ratio Value | Meaning | Score Trend |
+|:-----------:|---------|:-----------:|
+| `> 1` | Activity Rising ↑ | `> 50` |
+| `= 1` | Stable → | `= 50` |
+| `< 1` | Activity Declining ↓ | `< 50` |
+
+#### 🤝 Contribution — 20%
+```
+Ratio_n = (Last Week Avg PR + 1) / (Month Avg PR + 1)
+Score_Contrib = clamp(0, 100, 50 + (Ratio_n − 1) × 50)
+```
+
+#### 💻 Code Churn — 20%
+```
+Total Churn: q = Lines Added + Lines Deleted
+Score_Code = min(100, 20 × log₁₀(q + 1))
+```
+
+| Churn q | log₁₀(q+1) | Score |
+|:-------:|:----------:|:-----:|
+| 100 lines | ≈ 2 | 40 |
+| 1,000 lines | ≈ 3 | 60 |
+| 10,000 lines | ≈ 4 | 80 |
+| 100,000 lines | ≈ 5 | 100 |
+
+### Algorithm Implementation
+
+```python
+import math
+
+def calculate_health_score(data):
+    """
+    Calculate project health score
+    
+    Args:
+        data: dict containing:
+            - star_current_month      Current month new Stars
+            - star_avg_prev_3m        Average Stars over previous 3 months
+            - fork_current_month      Current month new Forks
+            - fork_avg_prev_3m        Average Forks over previous 3 months
+            - commit_avg_last_week    Average Commits last week
+            - commit_avg_month        Average Commits this month
+            - opendigger_activity     OpenDigger Activity metric
+            - pr_avg_last_week        Average PRs last week
+            - pr_avg_month            Average PRs this month
+            - pull_additions          Lines added
+            - pull_deletions          Lines deleted
+    
+    Returns:
+        float: Health score (0-100)
+    """
+    
+    # 1. Growth (Star & Fork) - 20%
+    s_score = min((data['star_current_month'] / (data['star_avg_prev_3m'] + 1)) * 100, 200) / 2
+    f_score = min((data['fork_current_month'] / (data['fork_avg_prev_3m'] + 1)) * 100, 200) / 2
+    score_growth = 0.5 * s_score + 0.5 * f_score
+
+    # 2. Activity (Commit & OpenDigger) - 40%
+    c_ratio = (data['commit_avg_last_week'] + 1) / (data['commit_avg_month'] + 1)
+    score_z = max(0, min(100, 50 + (c_ratio - 1) * 50))
+    score_m = min(100, data['opendigger_activity'] * 10)
+    score_activity = 0.3 * score_z + 0.7 * score_m
+
+    # 3. Contribution (PR Trend) - 20%
+    p_ratio = (data['pr_avg_last_week'] + 1) / (data['pr_avg_month'] + 1)
+    score_contrib = max(0, min(100, 50 + (p_ratio - 1) * 50))
+
+    # 4. Code Churn - 20%
+    total_churn = data['pull_additions'] + data['pull_deletions']
+    score_code = min(100, 20 * math.log10(total_churn + 1))
+
+    # Final Aggregation
+    final_score = (
+        0.2 * score_growth +
+        0.4 * score_activity +
+        0.2 * score_contrib +
+        0.2 * score_code
+    )
+
+    return round(final_score, 2)
+```
+
+## Development Plan
+- [x] Basic framework setup
+- [x] Health assessment algorithm implementation
+- [x] Visualization engine development
+- [x] OpenDigger integration
+- [ ] Enhanced multi-agent collaboration workflow
+- [ ] 3D rendering performance optimization
+- [ ] Additional open source data source integration
+- [ ] Mobile-responsive version
+- [ ] Custom weight configuration support
+
+## Contributing
+Welcome to submit Issues and Pull Requests to participate in project improvement. Before submitting, please ensure:
+1. Issue description is clear and complete
+2. Pull Request includes detailed explanation
+3. Code complies with project standards
+4. Necessary test cases are provided
+
+## License
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+<strong>OpenPulse</strong> — Insight into Open Source Community Pulse and Vitality
+</p>
