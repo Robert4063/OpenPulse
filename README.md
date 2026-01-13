@@ -23,9 +23,9 @@ In the rapidly evolving open source ecosystem, understanding the health and vita
 OpenPulse is a comprehensive open source community health assessment platform that provides multi-dimensional visualization and intelligent analysis to deeply explore the pulse and vitality of communities. The system integrates with OpenDigger data and leverages AI-powered multi-agent collaboration for real-time analysis.
 
 **Core Capabilities:**
-- **Community Panorama** — Multi-dimensional health metrics with cyber-style collaboration visualization
+- **Community Panorama** — Multi-dimensional health metrics with 3D collaboration visualization
 - **Lifecycle Analysis** — Historical retrospection + trend prediction with OpenDigger data integration
-- **Intelligent Collaboration** — MaxKB multi-agent real-time analysis and proactive governance
+- **Intelligent Collaboration** — MaxKB agent real-time analysis and proactive governance
 
 ## Features
 
