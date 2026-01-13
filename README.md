@@ -147,6 +147,7 @@ Open `http://127.0.0.1:5173` in your browser to access the platform.
 - **Contribution Details** — View project contributors
 ![Project Demo](./images/contributer.png)
 ## Health Assessment Algorithm
+Q&A** — Use the agent to get project analysis
 
 ### PHAM - Project Health Assessment Model
 Core algorithm that quantitatively evaluates open source project health, outputting a score from **0 to 100**.
