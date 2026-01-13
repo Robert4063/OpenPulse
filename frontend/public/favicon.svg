@@ -1,0 +1,31 @@
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆 - 渐变填充 -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGradient)"/>
+  
+  <!-- 外圈装饰 -->
+  <circle cx="50" cy="50" r="44" stroke="url(#ringGradient)" stroke-width="2" opacity="0.6"/>
+  
+  <!-- O - 左侧圆形 -->
+  <circle cx="35" cy="50" r="16" stroke="white" stroke-width="3.5" fill="none"/>
+  <!-- O 内部光点 -->
+  <circle cx="35" cy="50" r="4" fill="white" opacity="0.9"/>
+  
+  <!-- P - 右侧 -->
+  <path d="M50 34 L50 66 M50 34 L63 34 C72 34 76 40 76 46 C76 52 72 58 63 58 L50 58" 
+        stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- P 内部装饰点 -->
+  <circle cx="63" cy="46" r="3" fill="#22d3ee"/>
+  
+  <!-- 渐变定义 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+</svg>

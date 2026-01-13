@@ -1,4 +1,53 @@
+# Python
 __pycache__/
-*.pyc
-.env
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
 venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.cursor/
+
+# 数据文件 (太大不适合上传到GitHub)
+data/
+crawls/data/
+top300_20_23/
+*.json
+*.csv
+!package.json
+!package-lock.json
+!tsconfig.json
+!vite.config.js
+
+# Vite 缓存
+.vite/
+frontend/.vite/
+
+# 日志和临时文件
+*.log
+*.txt
+!requirements.txt
+!top300_projects_list.txt
+
+# 环境变量
+.env
+.env.local
+
+# 系统文件
+.DS_Store
+Thumbs.db

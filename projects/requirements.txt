@@ -1,0 +1,8 @@
+# 数据爬取依赖
+PyGithub==2.1.1
+python-dotenv==1.0.0
+tqdm==4.66.1
+python-dateutil==2.8.2
+
+# 数据处理
+pandas==2.1.4
