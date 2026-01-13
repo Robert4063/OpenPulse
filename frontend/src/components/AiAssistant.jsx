@@ -1,8 +1,64 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// API配置 - 通过Vite代理避免CORS问题
-const API_BASE_URL = '/chat-api/chat/api/019bb745-33e9-7e73-b8da-ae53dc681b23';
-const API_KEY = 'agent-5b6b2192d6c61a692307de2d16c5e302';
+// MaxKB嵌入配置
+const MAXKB_EMBED_URL = 'https://41cadc32.r1.cpolar.top/chat/api/embed?protocol=https&host=41cadc32.r1.cpolar.top&token=e6a447bdc1c14ec9';
+
+// 创建iframe内嵌的HTML内容
+const getIframeContent = () => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+    }
+    #maxkb, [id^="maxkb"] {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    .maxkb-btn, [class*="maxkb-btn"] {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <script async defer src="${MAXKB_EMBED_URL}"></script>
+  <script>
+    let attempts = 0;
+    const maxAttempts = 50;
+    const checkAndOpen = () => {
+      attempts++;
+      const btn = document.querySelector('[class*="maxkb"]') || document.querySelector('#maxkb');
+      if (btn) {
+        if (typeof window.maxkb !== 'undefined' && window.maxkb.open) {
+          window.maxkb.open();
+        } else {
+          btn.click && btn.click();
+        }
+        // 通知父窗口加载完成
+        window.parent.postMessage({ type: 'maxkb-loaded' }, '*');
+      } else if (attempts < maxAttempts) {
+        setTimeout(checkAndOpen, 200);
+      }
+    };
+    setTimeout(checkAndOpen, 500);
+  </script>
+</body>
+</html>
+`;
 
 // AI图标
 const AiIcon = () => (
@@ -18,27 +74,36 @@ const CloseIcon = () => (
   </svg>
 );
 
-// 发送图标
-const SendIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-  </svg>
-);
-
 const AiAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 30, y: window.innerHeight - 90 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: '你好！我是 OpenPulse AI 助手，有什么可以帮助你的吗？' }
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversationId, setConversationId] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [shouldRenderIframe, setShouldRenderIframe] = useState(false);
   const iconRef = useRef(null);
   const chatContainerRef = useRef(null);
-  const messagesEndRef = useRef(null);
+
+  // 页面加载后延迟预加载iframe（后台预加载）
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldRenderIframe(true);
+    }, 2000); // 页面加载2秒后开始预加载
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 监听iframe消息
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === 'maxkb-loaded') {
+        setIsLoaded(true);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   // 处理拖拽开始
   const handleMouseDown = (e) => {
@@ -59,7 +124,6 @@ const AiAssistant = () => {
       const newX = e.clientX - dragOffset.x;
       const newY = e.clientY - dragOffset.y;
       
-      // 限制在窗口范围内
       const maxX = window.innerWidth - 56;
       const maxY = window.innerHeight - 56;
       
@@ -84,115 +148,48 @@ const AiAssistant = () => {
     };
   }, [isDragging, dragOffset]);
 
-  // 自动滚动到底部
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   // 点击图标
   const handleClick = () => {
     if (!isDragging) {
+      if (!isOpen) {
+        // 如果还没开始预加载，立即开始
+        setShouldRenderIframe(true);
+      }
       setIsOpen(!isOpen);
     }
   };
 
-  // 发送消息到API (Dify格式)
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    const userMessage = inputValue.trim();
-    setInputValue('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setIsLoading(true);
-
-    try {
-      const requestBody = {
-        inputs: {},
-        query: userMessage,
-        response_mode: 'blocking',
-        user: 'openpulse-user-' + Date.now()
-      };
-      
-      // 如果有会话ID，则传入以保持上下文
-      if (conversationId) {
-        requestBody.conversation_id = conversationId;
+  // iframe加载完成
+  const handleIframeLoad = () => {
+    // 基础加载完成，但MaxKB可能还在初始化
+    setTimeout(() => {
+      if (!isLoaded) {
+        setIsLoaded(true); // 备用：10秒后强制设为已加载
       }
-
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API错误响应:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // 保存会话ID以保持上下文
-      if (data.conversation_id) {
-        setConversationId(data.conversation_id);
-      }
-      
-      const assistantReply = data.answer || data.message || data.response || data.content || '抱歉，我暂时无法回答这个问题。';
-      
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantReply }]);
-    } catch (error) {
-      console.error('AI请求失败:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: '抱歉，连接服务时出现问题，请稍后重试。' 
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 处理按键事件
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    }, 10000);
   };
 
   // 计算聊天框位置
   const getChatPosition = () => {
     const iconCenterX = position.x + 28;
     const iconCenterY = position.y + 28;
-    const chatWidth = 380;
-    const chatHeight = 520;
+    const chatWidth = 400;
+    const chatHeight = 580;
     
     let chatX, chatY;
     
-    // 根据图标位置决定聊天框方向
     if (iconCenterX < window.innerWidth / 2) {
-      // 图标在左边，聊天框在右边
       chatX = position.x + 66;
     } else {
-      // 图标在右边，聊天框在左边
       chatX = position.x - chatWidth - 10;
     }
     
     if (iconCenterY < window.innerHeight / 2) {
-      // 图标在上面，聊天框在下面
       chatY = position.y;
     } else {
-      // 图标在下面，聊天框在上面
       chatY = position.y - chatHeight + 56;
     }
     
-    // 边界检查
     chatX = Math.max(10, Math.min(chatX, window.innerWidth - chatWidth - 10));
     chatY = Math.max(10, Math.min(chatY, window.innerHeight - chatHeight - 10));
     
@@ -215,7 +212,7 @@ const AiAssistant = () => {
         onMouseDown={handleMouseDown}
         onClick={handleClick}
       >
-        {/* 脉冲动画 - 圆形 */}
+        {/* 脉冲动画 */}
         {!isOpen && (
           <>
             <div className="ai-pulse-ring" />
@@ -223,20 +220,34 @@ const AiAssistant = () => {
           </>
         )}
         
-        {/* 图标主体 - 圆形 */}
+        {/* 预加载状态指示器 */}
+        {!isOpen && shouldRenderIframe && !isLoaded && (
+          <div className="ai-preload-indicator" />
+        )}
+        
+        {/* 已加载指示器（绿点） */}
+        {!isOpen && isLoaded && (
+          <div className="ai-ready-indicator" />
+        )}
+        
+        {/* 图标主体 */}
         <div className={`ai-icon-inner ${isOpen ? 'scale-90' : ''}`}>
           {isOpen ? <CloseIcon /> : <AiIcon />}
         </div>
       </div>
 
-      {/* 聊天框 */}
-      {isOpen && (
+      {/* 预加载的iframe（隐藏状态） */}
+      {shouldRenderIframe && (
         <div
           ref={chatContainerRef}
           className="ai-chat-container"
           style={{
             left: chatPos.x,
-            top: chatPos.y
+            top: chatPos.y,
+            width: 400,
+            height: 580,
+            display: isOpen ? 'flex' : 'none',
+            visibility: isOpen ? 'visible' : 'hidden'
           }}
         >
           {/* 头部 */}
@@ -258,57 +269,30 @@ const AiAssistant = () => {
             </button>
           </div>
 
-          {/* 主体 - 消息列表 */}
+          {/* 主体 */}
           <div className="ai-chat-body">
-            <div className="ai-messages-container">
-              {messages.map((msg, index) => (
-                <div key={index} className={`ai-message ${msg.role}`}>
-                  {msg.role === 'assistant' && (
-                    <div className="ai-message-avatar">
-                      <AiIcon />
-                    </div>
-                  )}
-                  <div className={`ai-message-bubble ${msg.role}`}>
-                    {msg.content}
-                  </div>
+            {/* 加载提示 */}
+            {!isLoaded && (
+              <div className="ai-chat-loading">
+                <div className="ai-loading-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </div>
-              ))}
-              {isLoading && (
-                <div className="ai-message assistant">
-                  <div className="ai-message-avatar">
-                    <AiIcon />
-                  </div>
-                  <div className="ai-message-bubble assistant">
-                    <div className="ai-typing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* 输入框 */}
-          <div className="ai-chat-input-container">
-            <input
-              type="text"
-              className="ai-chat-input"
-              placeholder="输入您的问题..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading}
+                <p>正在连接 AI 服务...</p>
+                <p className="text-xs text-gray-400 mt-2">首次加载可能需要几秒钟</p>
+              </div>
+            )}
+            
+            {/* MaxKB iframe */}
+            <iframe
+              className="ai-chat-iframe"
+              srcDoc={getIframeContent()}
+              onLoad={handleIframeLoad}
+              style={{ opacity: isLoaded ? 1 : 0 }}
+              allow="microphone"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             />
-            <button
-              className="ai-chat-send-btn"
-              onClick={sendMessage}
-              disabled={isLoading || !inputValue.trim()}
-            >
-              <SendIcon />
-            </button>
           </div>
         </div>
       )}
