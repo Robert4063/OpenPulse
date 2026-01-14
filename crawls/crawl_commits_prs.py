@@ -24,7 +24,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Configuration ---
 TOKENS = [
     os.getenv("GITHUB_TOKEN_1", "your_github_token_1"),
     os.getenv("GITHUB_TOKEN_2", "your_github_token_2"),
@@ -37,7 +36,6 @@ COMMIT_DIR = os.path.join(DATA_DIR, "commit_activity")
 PR_DIR = os.path.join(DATA_DIR, "pr_daily")
 CHECKPOINT_DIR = os.path.join(DATA_DIR, "commits_prs_checkpoint")
 
-# 时间范围设置（可按需调整）
 START_DATE = datetime(2022, 3, 1, tzinfo=timezone.utc)
 END_DATE = datetime(2023, 3, 31, 23, 59, 59, tzinfo=timezone.utc)
 
@@ -64,7 +62,6 @@ class GitHubCrawler:
         return self.current_token_index
     
     def get_rate_limit_info(self):
-        """获取当前token的rate limit信息"""
         url = "https://api.github.com/rate_limit"
         try:
             response = self.session.get(url, timeout=10)
@@ -83,12 +80,10 @@ class GitHubCrawler:
         return {'core_remaining': 0, 'core_reset': 0, 'search_remaining': 0, 'search_reset': 0}
     
     def get_with_retry(self, url, params=None, max_retries=3, is_search=False):
-        """带重试和token切换的GET请求"""
         for attempt in range(max_retries):
             try:
                 response = self.session.get(url, params=params, timeout=30)
                 
-                # 检查rate limit
                 remaining = int(response.headers.get('X-RateLimit-Remaining', 1))
                 if remaining == 0:
                     reset_time = int(response.headers.get('X-RateLimit-Reset', 0))
@@ -96,7 +91,6 @@ class GitHubCrawler:
                     print(f"\nRate limit达到，切换token...")
                     old_index = self.current_token_index
                     self.switch_token()
-                    # 如果已经轮换了一轮所有token，等待
                     if self.current_token_index >= old_index + len(self.tokens):
                         actual_wait = min(wait_time, 60) if is_search else min(wait_time, 30)
                         print(f"所有token都达到限制，等待 {actual_wait:.0f} 秒...")
@@ -106,7 +100,6 @@ class GitHubCrawler:
                 if response.status_code == 200:
                     return response.json(), response.headers
                 elif response.status_code == 202:
-                    # 统计数据正在生成中，需要等待重试
                     print(f"\n数据生成中，等待2秒后重试...")
                     time.sleep(2)
                     continue
@@ -123,11 +116,9 @@ class GitHubCrawler:
                 elif response.status_code == 404:
                     return None, None
                 elif response.status_code == 422:
-                    # 通常是分页超过限制或参数问题
                     print(f"\n422 Unprocessable: {response.text[:200]}")
                     return None, None
                 elif response.status_code == 409:
-                    # 空仓库
                     print(f"\n409 Conflict (可能是空仓库)")
                     return None, None
                 else:
@@ -141,7 +132,6 @@ class GitHubCrawler:
         return None, None
 
     def get_commits_page(self, owner, repo, since=None, until=None, page=1, per_page=100):
-        """获取一页commits"""
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
         params = {'page': page, 'per_page': per_page}
         if since:
@@ -152,7 +142,6 @@ class GitHubCrawler:
         return data, headers
     
     def get_prs_page(self, owner, repo, state='all', page=1, per_page=100):
-        """获取一页PRs"""
         url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
         params = {
             'state': state,
@@ -165,9 +154,7 @@ class GitHubCrawler:
         return data, headers
     
     def search_prs(self, repo, created_date):
-        """使用Search API搜索特定日期创建的PR"""
         url = "https://api.github.com/search/issues"
-        # 搜索特定日期创建的PR
         query = f"repo:{repo} is:pr created:{created_date}"
         params = {'q': query, 'per_page': 1}
         data, headers = self.get_with_retry(url, params, is_search=True)
@@ -177,14 +164,12 @@ class GitHubCrawler:
 
 
 def ensure_dirs():
-    """确保目录存在"""
     for d in [COMMIT_DIR, PR_DIR, CHECKPOINT_DIR]:
         if not os.path.exists(d):
             os.makedirs(d)
 
 
 def get_projects():
-    """读取项目列表"""
     projects = []
     if not os.path.exists(PROJECT_LIST_FILE):
         print(f"Error: {PROJECT_LIST_FILE} not found.")
@@ -203,18 +188,15 @@ def get_projects():
 
 
 def get_safe_name(repo_name):
-    """将 owner/repo 转换为安全的文件名"""
     return repo_name.replace('/', '_')
 
 
 def get_checkpoint_path(repo_name, data_type):
-    """获取断点文件路径"""
     safe_name = get_safe_name(repo_name)
     return os.path.join(CHECKPOINT_DIR, f"{safe_name}_{data_type}.json")
 
 
 def get_output_path(repo_name, data_type):
-    """获取输出文件路径"""
     safe_name = get_safe_name(repo_name)
     if data_type == 'commits':
         return os.path.join(COMMIT_DIR, f"{safe_name}_commits.json")
@@ -223,7 +205,6 @@ def get_output_path(repo_name, data_type):
 
 
 def read_checkpoint(repo_name, data_type):
-    """读取断点信息"""
     path = get_checkpoint_path(repo_name, data_type)
     if os.path.exists(path):
         try:
@@ -235,17 +216,14 @@ def read_checkpoint(repo_name, data_type):
 
 
 def write_checkpoint(repo_name, data_type, checkpoint_data):
-    """写入断点信息"""
     path = get_checkpoint_path(repo_name, data_type)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(checkpoint_data, f, ensure_ascii=False, indent=2)
 
 
 def save_result(repo_name, data_type, daily_counts, total_count):
-    """保存最终结果"""
     path = get_output_path(repo_name, data_type)
     
-    # 将日期字符串排序
     sorted_dates = sorted(daily_counts.keys())
     
     result = {
@@ -264,7 +242,6 @@ def save_result(repo_name, data_type, daily_counts, total_count):
 
 
 def process_commits(crawler, repo_name):
-    """处理单个仓库的commits"""
     parts = repo_name.split('/')
     if len(parts) != 2:
         print(f"⚠️  跳过无效项目格式: {repo_name}")
@@ -272,7 +249,6 @@ def process_commits(crawler, repo_name):
     
     owner, repo = parts
     
-    # 读取断点
     checkpoint = read_checkpoint(repo_name, 'commits')
     
     if checkpoint.get("completed", False):
@@ -288,7 +264,6 @@ def process_commits(crawler, repo_name):
     total_commits = 0
     commits_in_range = 0
     
-    # 使用while循环分页获取commits
     pbar = tqdm(desc=f"    Commits", unit=" pages", initial=last_page, leave=False)
     
     try:
@@ -307,13 +282,11 @@ def process_commits(crawler, repo_name):
             for commit_info in data:
                 total_commits += 1
                 
-                # 解析commit时间 - 使用committer日期
                 commit_data = commit_info.get('commit', {})
                 committer = commit_data.get('committer', {})
                 commit_date_str = committer.get('date')
                 
                 if not commit_date_str:
-                    # 尝试使用author日期
                     author = commit_data.get('author', {})
                     commit_date_str = author.get('date')
                 
@@ -325,7 +298,6 @@ def process_commits(crawler, repo_name):
                 except:
                     continue
                 
-                # 检查是否在时间范围内
                 if START_DATE <= commit_date <= END_DATE:
                     date_str = commit_date.strftime("%Y-%m-%d")
                     daily_commits[date_str] += 1
@@ -333,12 +305,10 @@ def process_commits(crawler, repo_name):
             
             pbar.update(1)
             
-            # 检查是否还有下一页
             link_header = headers.get('Link', '') if headers else ''
             if 'rel="next"' not in link_header:
                 break
             
-            # 每10页保存一次断点
             if page % 10 == 0:
                 checkpoint_data = {
                     "last_page": page,
@@ -349,15 +319,12 @@ def process_commits(crawler, repo_name):
             
             page += 1
             
-            # 避免请求过快
             time.sleep(0.1)
         
         pbar.close()
         
-        # 保存最终结果
         save_result(repo_name, 'commits', dict(daily_commits), total_commits)
         
-        # 标记为完成
         checkpoint_data = {
             "last_page": page,
             "daily_counts": dict(daily_commits),
@@ -381,7 +348,6 @@ def process_commits(crawler, repo_name):
         print(f"\n  [Commits] 错误: {e}")
         import traceback
         traceback.print_exc()
-        # 保存当前进度
         checkpoint_data = {
             "last_page": page - 1,
             "daily_counts": dict(daily_commits),
@@ -392,7 +358,6 @@ def process_commits(crawler, repo_name):
 
 
 def process_prs(crawler, repo_name):
-    """处理单个仓库的PRs"""
     parts = repo_name.split('/')
     if len(parts) != 2:
         print(f"⚠️  跳过无效项目格式: {repo_name}")
@@ -400,7 +365,6 @@ def process_prs(crawler, repo_name):
     
     owner, repo = parts
     
-    # 读取断点
     checkpoint = read_checkpoint(repo_name, 'prs')
     
     if checkpoint.get("completed", False):
@@ -415,9 +379,8 @@ def process_prs(crawler, repo_name):
     page = last_page + 1
     total_prs = 0
     prs_in_range = 0
-    passed_start_date = False  # 标记是否已经过了开始日期
+    passed_start_date = False 
     
-    # 使用while循环分页获取PRs
     pbar = tqdm(desc=f"    PRs", unit=" pages", initial=last_page, leave=False)
     
     try:
@@ -430,7 +393,6 @@ def process_prs(crawler, repo_name):
             for pr_info in data:
                 total_prs += 1
                 
-                # 解析PR创建时间
                 created_at_str = pr_info.get('created_at')
                 if not created_at_str:
                     continue
@@ -440,21 +402,17 @@ def process_prs(crawler, repo_name):
                 except:
                     continue
                 
-                # 检查是否在时间范围内
                 if START_DATE <= created_at <= END_DATE:
                     date_str = created_at.strftime("%Y-%m-%d")
                     daily_prs[date_str] += 1
                     prs_in_range += 1
                 
-                # 由于PRs按created降序排列，如果当前PR早于START_DATE，可以提前结束
                 if created_at < START_DATE:
                     passed_start_date = True
             
             pbar.update(1)
             
-            # 如果所有PR都已经早于开始日期，停止
             if passed_start_date:
-                # 再检查一下是否真的全部都早于开始日期
                 all_before = all(
                     datetime.fromisoformat(pr.get('created_at', '').replace('Z', '+00:00')) < START_DATE
                     for pr in data if pr.get('created_at')
@@ -462,12 +420,10 @@ def process_prs(crawler, repo_name):
                 if all_before:
                     break
             
-            # 检查是否还有下一页
             link_header = headers.get('Link', '') if headers else ''
             if 'rel="next"' not in link_header:
                 break
             
-            # 每10页保存一次断点
             if page % 10 == 0:
                 checkpoint_data = {
                     "last_page": page,
@@ -478,15 +434,12 @@ def process_prs(crawler, repo_name):
             
             page += 1
             
-            # 避免请求过快
             time.sleep(0.1)
         
         pbar.close()
         
-        # 保存最终结果
         save_result(repo_name, 'prs', dict(daily_prs), total_prs)
         
-        # 标记为完成
         checkpoint_data = {
             "last_page": page,
             "daily_counts": dict(daily_prs),
@@ -510,7 +463,6 @@ def process_prs(crawler, repo_name):
         print(f"\n  [PRs] 错误: {e}")
         import traceback
         traceback.print_exc()
-        # 保存当前进度
         checkpoint_data = {
             "last_page": page - 1,
             "daily_counts": dict(daily_prs),
@@ -521,7 +473,6 @@ def process_prs(crawler, repo_name):
 
 
 def process_repo(crawler, repo_name):
-    """处理单个仓库"""
     commit_success = process_commits(crawler, repo_name)
     pr_success = process_prs(crawler, repo_name)
     return commit_success and pr_success
@@ -538,10 +489,8 @@ def main():
     print(f"🔑 Token数量: {len(TOKENS)}")
     print(f"📅 时间范围: {START_DATE.strftime('%Y-%m-%d')} ~ {END_DATE.strftime('%Y-%m-%d')}")
     
-    # 确保目录存在
     ensure_dirs()
     
-    # 读取项目列表
     if len(sys.argv) > 1:
         projects = [sys.argv[1]]
     else:
@@ -553,10 +502,8 @@ def main():
     
     print(f"\n📋 找到 {len(projects)} 个项目")
     
-    # 初始化爬虫
     crawler = GitHubCrawler(TOKENS)
     
-    # 检查初始rate limit
     rate_info = crawler.get_rate_limit_info()
     print(f"📊 当前Token剩余请求次数: Core={rate_info['core_remaining']}, Search={rate_info['search_remaining']}")
     
@@ -569,7 +516,6 @@ def main():
     for i, repo_name in enumerate(projects):
         print(f"\n[{i+1}/{len(projects)}] 处理: {repo_name}")
         
-        # 检查是否已完成（commits和prs都完成）
         commit_checkpoint = read_checkpoint(repo_name, 'commits')
         pr_checkpoint = read_checkpoint(repo_name, 'prs')
         if commit_checkpoint.get("completed", False) and pr_checkpoint.get("completed", False):
@@ -589,10 +535,8 @@ def main():
         except Exception as e:
             print(f"  ❌ 错误: {e}")
             error_count += 1
-            # 切换token尝试
             crawler.switch_token()
     
-    # 统计
     print("\n" + "=" * 60)
     print("📊 爬取统计")
     print("=" * 60)
@@ -601,7 +545,6 @@ def main():
     print(f"跳过(已完成): {skipped_count}")
     print(f"失败: {error_count}")
     print("\n✅ 爬取完成!")
-
 
 if __name__ == "__main__":
     main()
