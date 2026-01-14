@@ -8,9 +8,6 @@ from dateutil import parser
 from github import Github, GithubException, Auth, RateLimitExceededException
 from tqdm import tqdm
 
-# Configuration
-# 从环境变量读取 GitHub Token，多个 Token 用逗号分隔
-# 在 .env 文件中设置: GITHUB_TOKENS=token1,token2,token3
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -22,7 +19,7 @@ if not TOKENS or TOKENS == [""]:
 PROJECT_LIST_FILE = "top300_projects_list.txt"
 DATA_DIR = "data"
 COMMENT_DIR = os.path.join(DATA_DIR, "comment")
-NUMBER_DIR = os.path.join(DATA_DIR, "comment_number") # 这里实际存储的是处理过的Issue数量
+NUMBER_DIR = os.path.join(DATA_DIR, "comment_number") 
 START_DATE = datetime(2022, 3, 1, tzinfo=timezone.utc)
 END_DATE = datetime(2023, 3, 31, 23, 59, 59, tzinfo=timezone.utc)
 
@@ -55,7 +52,6 @@ def get_checkpoint_path(repo_name):
     return os.path.join(NUMBER_DIR, f"{safe_name}.txt")
 
 def read_checkpoint(repo_name):
-    """Returns the number of ISSUES already processed."""
     path = get_checkpoint_path(repo_name)
     if os.path.exists(path):
         try:
@@ -68,13 +64,11 @@ def read_checkpoint(repo_name):
     return 0
 
 def write_checkpoint(repo_name, count):
-    """Writes the total count of processed ISSUES."""
     path = get_checkpoint_path(repo_name)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(str(count))
 
 def append_data(repo_name, data_list):
-    """Appends a list of issue objects (with comments) to the JSON file."""
     if not data_list:
         return
 
@@ -85,7 +79,6 @@ def append_data(repo_name, data_list):
         try:
             with open(file_path, 'rb+') as f:
                 f.seek(0, os.SEEK_END)
-                # Find the last ']'
                 pos = f.tell() - 1
                 found = False
                 while pos >= 0:
@@ -98,7 +91,6 @@ def append_data(repo_name, data_list):
                 
                 if found:
                     f.seek(pos)
-                    # Check if we need a comma
                     needs_comma = True
                     scan_pos = pos - 1
                     while scan_pos >= 0:
@@ -132,7 +124,6 @@ def append_data(repo_name, data_list):
             json.dump(data_list, f, ensure_ascii=False, indent=2)
 
 def serialize_comment(comment):
-    # Rename fields as requested: created_at -> created_time, updated_at -> updated_time
     c_created = comment.created_at
     if c_created.tzinfo is None:
         c_created = c_created.replace(tzinfo=timezone.utc)
@@ -160,39 +151,23 @@ def process_repo(g, repo_name):
         print(f"[{repo_name}] Error accessing repo: {e}")
         return
 
-    # 1. Read stored Issue count (Resume logic)
     processed_issues_count = read_checkpoint(repo_name)
     print(f"[{repo_name}] Resuming from Issue count: {processed_issues_count}")
 
-    # 2. Get Issues updated since START_DATE
-    # We use sort='updated' and direction='asc' so we process from older updates to newer ones.
-    # Note: Issues created before START_DATE but commented on AFTER START_DATE will appear here.
     try:
         issues = repo.get_issues(state='all', sort='updated', direction='asc', since=START_DATE)
         
-        # We cannot easily jump to an index in PaginatedList without iterating, 
-        # but we can check the total count if needed (slow). 
-        # We will iterate and skip manually.
-        
         buffer = []
-        # Tqdm helps visualize progress. Total is unknown usually, or expensive to get.
         pbar = tqdm(desc=f"[{repo_name}]", unit=" issues", initial=processed_issues_count)
         
         current_count = 0
         
         for issue in issues:
-            # Skip already processed issues
             if current_count < processed_issues_count:
                 current_count += 1
                 continue
             
-            # Optimization: If the issue was updated AFTER END_DATE, we still need to check it
-            # because 'updated' time includes comments. 
-            # If the issue was updated way past END_DATE, the comments inside might still be in range.
-            # However, if 'updated' < START_DATE, the API wouldn't return it (handled by `since`).
-            
             try:
-                # Fetch comments for this specific issue
                 comments = issue.get_comments()
                 
                 valid_comments = []
@@ -201,11 +176,9 @@ def process_repo(g, repo_name):
                     if c_created.tzinfo is None:
                         c_created = c_created.replace(tzinfo=timezone.utc)
                     
-                    # Strict Date Filtering for Comments
                     if START_DATE <= c_created <= END_DATE:
                         valid_comments.append(serialize_comment(comment))
                 
-                # Only save if there are valid comments in the range
                 if valid_comments:
                     issue_data = {
                         "issue_url": issue.html_url, # Using html_url as the main identifier link
@@ -217,21 +190,18 @@ def process_repo(g, repo_name):
                 current_count += 1
                 pbar.update(1)
                 
-                # Save every 20 issues (since each issue contains multiple comments, keep batch size smaller)
                 if len(buffer) >= 20:
                     append_data(repo_name, buffer)
                     write_checkpoint(repo_name, current_count)
                     buffer = []
 
             except RateLimitExceededException:
-                raise # Re-throw to be handled by main loop
+                raise 
             except Exception as e:
                 print(f"Error processing issue {issue.number}: {e}")
-                # Continue to next issue instead of crashing
                 current_count += 1
                 continue
 
-        # Save remaining
         if buffer:
             append_data(repo_name, buffer)
             write_checkpoint(repo_name, current_count)
@@ -269,7 +239,6 @@ def main():
                 token_index += 1
                 g = get_github_client(token_index)
                 
-                # If we've cycled through all tokens, sleep a bit
                 if token_index % len(TOKENS) == 0:
                     print("All tokens exhausted. Sleeping for 60 seconds...")
                     time.sleep(60)
