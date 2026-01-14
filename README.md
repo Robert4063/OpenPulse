@@ -141,6 +141,7 @@ Open your browser and visit `http://127.0.0.1:5173` to enter the platform.
 
 ### Home & Search
 - **Browse Trends** — View daily updated trending projects.
+![项目演示](./images/trend.png)
 - **Search Projects** — Enter project names, displayed sorted by relevance and activity.
 ![Search Demo](./images/search.png)
 
