@@ -3,7 +3,7 @@
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)[![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red)](https://www.python.org/)[![MySQL](https://img.shields.io/badge/MySQL-%3E%3D8.0-blue)](https://www.mysql.com/)[![EN](https://img.shields.io/badge/English-README.md-orange)](README.md)
 
 > **开源社区健康评估与可视化平台** — 洞察社区脉搏，量化健康程度
-
+![项目演示](./images/table.png)
 ## 目录
 - [背景](#背景)
 - [项目简介](#项目简介)
@@ -29,7 +29,7 @@
 - **智能搜索** — 热度榜单、智能排序、贡献者画像
 
 ## 核心功能
-![项目演示](./images/table.png)
+
 1. **多维度健康评估**
    - 项目健康评分（0-100分）
    - 增长指标（Star/Fork 趋势）
@@ -282,7 +282,7 @@ def calculate_health_score(data):
 - [x] 健康评估算法实现
 - [x] 可视化引擎开发
 - [x] OpenDigger 数据集成
-- [×] 完善多智能体协作流程
+- [X] 完善多智能体协作流程
 - [ ] 优化 3D 渲染性能
 - [ ] 接入更多开源数据源
 - [ ] 推出移动端适配版本
