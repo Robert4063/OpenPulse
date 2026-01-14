@@ -8,7 +8,6 @@ from github import Github, GithubException, Auth
 from tqdm import tqdm
 from dateutil import parser
 
-# --- Configuration ---
 TOKENS = [
     os.getenv("GITHUB_TOKEN_1", "your_github_token_1"),
     os.getenv("GITHUB_TOKEN_2", "your_github_token_2"),
@@ -22,13 +21,9 @@ def get_github_client(token_index):
     auth = Auth.Token(token)
     return Github(auth=auth)
 
-# 按照用户要求，存储到 data/issue 文件夹
 OUTPUT_DIR = os.path.join("data", "issue")
-# Number 记录文件，用于断点续传去重
 NUMBER_DIR = os.path.join("data", "issue_numbers")
 
-# Date Range: 2022-03-01 to 2023-03-31
-# 注意：API 的 since 参数是基于 updated_at 的，但我们主要关注 created_at
 FIXED_START_DATE = datetime(2022, 3, 1, tzinfo=timezone.utc)
 END_DATE = datetime(2023, 3, 31, 23, 59, 59, tzinfo=timezone.utc)
 
@@ -181,23 +176,14 @@ def serialize_issue(issue):
     }
 
 def get_github_issue_count(g, project_name, start_date, end_date):
-    """
-    Get the total number of issues (including PRs) in the given date range using Search API.
-    """
     try:
-        # Format dates for GitHub search: YYYY-MM-DD
         start_str = start_date.strftime("%Y-%m-%d")
         end_str = end_date.strftime("%Y-%m-%d")
-        
-        # We need to query issues and PRs separately because GitHub Search API requires 'is:issue' or 'is:pr'
-        # and doesn't support a simple "OR" for types in a way that avoids the error easily or reliably in one go.
-        # Actually, we can just sum them up.
         
         query_issues = f"repo:{project_name} created:{start_str}..{end_str} is:issue"
         query_prs = f"repo:{project_name} created:{start_str}..{end_str} is:pr"
         
         issues_count = g.search_issues(query_issues).totalCount
-        # Small sleep to avoid hitting secondary rate limits too hard if we do this fast
         time.sleep(1) 
         prs_count = g.search_issues(query_prs).totalCount
         
@@ -210,11 +196,9 @@ def process_project(g, project_name):
     safe_name = project_name.replace('/', '_')
     json_file = os.path.join(OUTPUT_DIR, f"{safe_name}.json")
     number_file = os.path.join(NUMBER_DIR, f"{safe_name}.txt")
-    
-    # 1. Read stored count
+
     crawled_count = read_checkpoint(number_file)
-    
-    # 2. Check total count on GitHub
+
     total_count = get_github_issue_count(g, project_name, FIXED_START_DATE, END_DATE)
     
     if total_count is not None:
@@ -224,53 +208,40 @@ def process_project(g, project_name):
             return "skipped"
     else:
         print(f"[{project_name}] Could not verify total count. Proceeding with crawl...")
-    
-    # 3. Determine start time for Resume
+
     current_start_date = FIXED_START_DATE
     is_resuming = False
     
     if os.path.exists(json_file):
         last_date = get_last_created_at(json_file)
         if last_date and last_date > FIXED_START_DATE:
-            # Resume from the last crawled date
             current_start_date = last_date
             is_resuming = True
             print(f"[{project_name}] Resuming from {current_start_date}")
     
     if current_start_date >= END_DATE:
         print(f"[{project_name}] Date range exhausted.")
-        # Only return skipped if we are sure (which we checked above with count). 
-        # If we are here, it means counts didn't match but date says end. 
-        # This implies missing data or discrepancy. We can't do much if date is past END.
         return "skipped"
 
     try:
         repo = g.get_repo(project_name)
         
-        # API request:
-        # since: Only issues updated at or after this time are returned.
-        # sort='created': Return results sorted by creation time.
         issues = repo.get_issues(state='all', sort='created', direction='asc', since=current_start_date)
         
         new_batch = []
-        # We track total count
         current_count = crawled_count
         
-        # Use tqdm for progress
         pbar_total = total_count if total_count else (crawled_count + 1000) # Estimate if None
         pbar = tqdm(desc=f"[{project_name}] Crawling", unit="issue", initial=crawled_count, total=pbar_total)
         
         for issue in issues:
-            # Strict creation date filtering
             if issue.created_at < FIXED_START_DATE:
                 continue
             
             if issue.created_at > END_DATE:
                 break
             
-            # Deduplication logic based on timestamp
             if is_resuming and issue.created_at <= current_start_date:
-                # Skip issues that are older or equal to the resume point to avoid duplicates
                 continue
 
             data = serialize_issue(issue)
@@ -278,13 +249,11 @@ def process_project(g, project_name):
             current_count += 1
             pbar.update(1)
             
-            # Save batch every 50
             if len(new_batch) >= 50:
                 append_issues_to_json(json_file, new_batch)
                 write_checkpoint(number_file, current_count)
                 new_batch = []
         
-        # Save remaining
         if new_batch:
             append_issues_to_json(json_file, new_batch)
             write_checkpoint(number_file, current_count)
@@ -317,12 +286,11 @@ def main():
                 token_index += 1
                 g = get_github_client(token_index)
                 
-                # If we cycled through all tokens, sleep
                 if token_index % len(TOKENS) == 0:
                     print("All tokens exhausted. Sleeping for 60 seconds...")
                     time.sleep(60)
                 continue
-            break # Success or non-critical error, move to next project
+            break 
 
 if __name__ == "__main__":
     main()
