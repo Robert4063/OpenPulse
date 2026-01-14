@@ -140,7 +140,7 @@ Open `http://127.0.0.1:5173` in your browser to access the platform.
 ### Project Dashboard
 - **Overview** — View closeness line charts, activity histograms
 - **Health Analysis** — Check the project's health score calculated using the PHAM model
-![Project Demo](./images/heath.png)
+![Project Demo](./images/health.png)
 
 ### Relationship Network Interaction
 - **View Similar Health Projects** — Browse projects with similar health scores in the list
