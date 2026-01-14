@@ -2,8 +2,10 @@
 
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)[![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red)](https://www.python.org/)[![MySQL](https://img.shields.io/badge/MySQL-%3E%3D8.0-blue)](https://www.mysql.com/)[![CN](https://img.shields.io/badge/中文-README--CN.md-orange)](README-CN.md)
 
-> **Open Source Community Health Assessment & Visualization Platform** — Insight into community pulse, quantify health metrics
+**Open Source Community Health Assessment & Visualization Platform** — Insight into community pulse, quantify health metrics
 
+
+![Project Demo](./images/table.png)
 ## Table of Contents
 - [Background](#background)
 - [Introduction](#introduction)
@@ -29,7 +31,6 @@ In the rapidly evolving open source ecosystem, understanding project health and 
 - **Smart Search** — Trending rankings, intelligent sorting, contributor profiling
 
 ## Core Features
-![Project Demo](./images/table.png)
 1. **Multi-dimensional Health Assessment**
    - Project health score (0-100)
    - Growth metrics (Star/Fork trends)
@@ -139,7 +140,7 @@ Open `http://127.0.0.1:5173` in your browser to access the platform.
 ### Project Dashboard
 - **Overview** — View closeness line charts, activity histograms
 - **Health Analysis** — Check the project's health score calculated using the PHAM model
-![Project Demo](./images/health.png)
+![Project Demo](./images/heath.png)
 
 ### Relationship Network Interaction
 - **View Similar Health Projects** — Browse projects with similar health scores in the list
@@ -274,7 +275,7 @@ def calculate_health_score(data):
     return round(final_score, 2)
 ```
 
-## Backend Error Handling
+### Backend Error Handling
 When backend data fails to transmit to the frontend, a notification will pop up in the frontend. Developers can use this notification to improve the backend.
 ![Project Demo](./images/error.png)
 
@@ -283,7 +284,7 @@ When backend data fails to transmit to the frontend, a notification will pop up 
 - [x] Health assessment algorithm implementation
 - [x] Visualization engine development
 - [x] OpenDigger data integration
-- [×] Improve multi-agent collaboration workflow
+- [X] Improve multi-agent collaboration workflow
 - [ ] Optimize 3D rendering performance
 - [ ] Integrate more open source data sources
 - [ ] Release mobile-responsive version
