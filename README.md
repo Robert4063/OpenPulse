@@ -1,6 +1,6 @@
 # OpenPulse
 
-![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen) ![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red) ![MySQL Version](https://img.shields.io/badge/MySQL-%3E%3D8.0-blue) ![Chinese Version](https://img.shields.io/badge/README-CN.md-orange)
+![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen) ![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-red) ![MySQL Version](https://img.shields.io/badge/MySQL-%3E%3D8.0-blue)[![EN](https://img.shields.io/badge/中文-README.md-orange)](README-CN.md)
 
 > **Open Source Community Health Assessment & Visualization Platform** — Insight into community pulse, quantifying health levels.
 
